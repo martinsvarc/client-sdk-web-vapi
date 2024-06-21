@@ -1,5 +1,6 @@
 import { Call, CreateAssistantDTO, CreateSquadDTO, OverrideAssistantDTO } from './api';
 import DailyIframe, {
+  DailyAdvancedConfig,
   DailyCall,
   DailyEventObjectAppMessage,
   DailyEventObjectParticipant,
@@ -103,11 +104,13 @@ export default class Vapi extends VapiEventEmitter {
   private started: boolean = false;
   private call: DailyCall | null = null;
   private speakingTimeout: NodeJS.Timeout | null = null;
+  private dailyCallConfig: DailyAdvancedConfig = {}
 
-  constructor(apiToken: string, apiBaseUrl?: string) {
+  constructor(apiToken: string, apiBaseUrl?: string, dailyCallConfig?: Pick<DailyAdvancedConfig, 'avoidEval'>) {
     super();
     client.baseUrl = apiBaseUrl ?? 'https://api.vapi.ai';
     client.setSecurityData(apiToken);
+    this.dailyCallConfig = dailyCallConfig ?? {}
   }
 
   private cleanup() {
@@ -148,6 +151,7 @@ export default class Vapi extends VapiEventEmitter {
       this.call = DailyIframe.createCallObject({
         audioSource: true,
         videoSource: false,
+        dailyConfig: this.dailyCallConfig
       });
       this.call.iframe()?.style.setProperty('display', 'none');
 
