@@ -4,18 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vapi AI Assistant</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             background-color: #1a1a1a;
             color: white;
+            margin: 0;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
         }
-
+        
         .mic-button {
             width: 96px;
             height: 96px;
@@ -28,92 +27,82 @@
             justify-content: center;
             transition: all 0.3s ease;
         }
-
-        .mic-button:hover {
-            background-color: #2563eb;
-            transform: scale(1.05);
-        }
-
+        
         .mic-button.active {
             background-color: #60a5fa;
             box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
             transform: scale(1.1);
         }
-
-        .status-text {
-            margin-top: 1rem;
-            color: rgba(255, 255, 255, 0.6);
+        
+        .mic-button:hover {
+            background-color: #2563eb;
+        }
+        
+        .status {
+            margin-top: 20px;
             text-align: center;
+            color: rgba(255, 255, 255, 0.7);
         }
     </style>
 </head>
 <body>
-    <div class="flex flex-col items-center">
+    <div class="container">
         <button id="micButton" class="mic-button" onclick="toggleCall()">
-            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="currentColor"/>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="white"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
-        <div id="status" class="status-text">Ready</div>
+        <div id="status" class="status">Ready</div>
     </div>
 
-    <!-- Import Vapi directly from CDN -->
+    <!-- Import Vapi SDK -->
     <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
+
     <script>
+        // Your actual Vapi credentials from Vercel environment
+        const VAPI_PUBLIC_KEY = 'bb01b4a0-3597-4ef3-a3c7-f777014ca78f';
+        const VAPI_ASSISTANT_ID = '5439b123-43bd-4983-b794-c1b404273d72';
+        
         let vapi;
         let isCallActive = false;
 
         // Initialize when page loads
         window.onload = function() {
-            // Initialize with your environment variables
-            vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+            // Initialize with your public key
+            vapi = new Vapi(VAPI_PUBLIC_KEY);
             
-            // Set up event listeners
             vapi.on('call-start', () => {
                 document.getElementById('status').textContent = 'Listening...';
                 document.getElementById('micButton').classList.add('active');
                 isCallActive = true;
-                console.log('Call started');
             });
 
             vapi.on('call-end', () => {
                 document.getElementById('status').textContent = 'Ready';
                 document.getElementById('micButton').classList.remove('active');
                 isCallActive = false;
-                console.log('Call ended');
             });
 
             vapi.on('speech-start', () => {
-                document.getElementById('status').textContent = 'Assistant Speaking';
-                console.log('Speech started');
+                document.getElementById('status').textContent = 'Assistant speaking...';
             });
 
             vapi.on('speech-end', () => {
                 document.getElementById('status').textContent = 'Listening...';
-                console.log('Speech ended');
             });
 
             vapi.on('error', (error) => {
-                document.getElementById('status').textContent = 'Error Occurred';
+                console.error('Error:', error);
+                document.getElementById('status').textContent = 'Error occurred';
                 document.getElementById('micButton').classList.remove('active');
                 isCallActive = false;
-                console.error('Error:', error);
-            });
-
-            // Optional: Volume level indicator
-            vapi.on('volume-level', (volume) => {
-                const button = document.getElementById('micButton');
-                const scale = 1.1 + (volume * 0.1); // Scale between 1.1 and 1.2
-                button.style.transform = `scale(${scale})`;
             });
         };
 
-        // Function to toggle the call
         function toggleCall() {
             if (!isCallActive) {
-                // Start call with your assistant ID
-                vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID);
+                vapi.start(VAPI_ASSISTANT_ID);
             } else {
                 vapi.stop();
             }
