@@ -3,91 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat</title>
-    <style>
-        /* ... keep the same styles ... */
-    </style>
+    <title>Vapi Client SDK</title>
+    <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
 </head>
 <body>
-    <div id="chat-bubble" class="chat-bubble" onclick="toggleCall()">
-        <div class="audio-waves" id="audio-waves"></div>
-        <svg class="icon" viewBox="0 0 24 24" id="mic-icon">
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-        </svg>
-    </div>
+    <!-- This div will be your embed target in Webflow -->
+    <div id="vapi-widget"></div>
+    
+    <script>
+        const vapiWidget = document.getElementById('vapi-widget');
+        const vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
+        
+        // You can later use Vercel env variables here
+        const assistantId = '5439b123-43bd-4983-b794-c1b404273d72';
 
-    <!-- Change to module type and wait for load -->
-    <script type="module">
-        // Import Vapi from CDN
-        import Vapi from 'https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js';
+        // Create widget UI
+        const button = document.createElement('button');
+        button.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #0066ff;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+        `;
 
-        let vapiInstance;
         let isCallActive = false;
 
-        // Make toggleCall global
-        window.toggleCall = function() {
-            if (!isCallActive) {
-                vapiInstance.start('5439b123-43bd-4983-b794-c1b404273d72');
-            } else {
-                vapiInstance.stop();
-            }
-            isCallActive = !isCallActive;
-        }
-
-        // Initialize when document is ready
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                vapiInstance = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
-                console.log('Vapi initialized successfully');
-                
-                vapiInstance.on('call-start', () => {
-                    showActive(true);
-                    console.log('Call started');
-                });
-
-                vapiInstance.on('call-end', () => {
-                    showActive(false);
-                    console.log('Call ended');
-                });
-
-                vapiInstance.on('speech-start', () => {
-                    showSpeaking(true);
-                    console.log('Speaking started');
-                });
-
-                vapiInstance.on('speech-end', () => {
-                    showSpeaking(false);
-                    console.log('Speaking ended');
-                });
-
-                vapiInstance.on('error', (error) => {
-                    console.error('Vapi error:', error);
-                    showActive(false);
-                });
-
-            } catch (error) {
-                console.error('Initialization error:', error);
-            }
+        vapi.on('call-start', () => {
+            console.log('Call started');
+            button.style.background = '#ff0000';
         });
 
-        function showActive(active) {
-            const bubble = document.getElementById('chat-bubble');
-            if (active) {
-                bubble.classList.add('active');
-            } else {
-                bubble.classList.remove('active');
-            }
-        }
+        vapi.on('call-end', () => {
+            console.log('Call ended');
+            button.style.background = '#0066ff';
+            isCallActive = false;
+        });
 
-        function showSpeaking(speaking) {
-            const waves = document.getElementById('audio-waves');
-            if (speaking) {
-                waves.classList.add('active');
+        button.onclick = function() {
+            if (!isCallActive) {
+                vapi.start(assistantId);
+                isCallActive = true;
             } else {
-                waves.classList.remove('active');
+                vapi.stop();
+                isCallActive = false;
             }
-        }
+        };
+
+        vapiWidget.appendChild(button);
     </script>
 </body>
 </html>
