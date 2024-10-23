@@ -5,103 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vapi AI Assistant</title>
     <style>
-        body {
-            background-color: #1a1a1a;
-            color: white;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
         .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
             text-align: center;
         }
-        
-        .mic-button {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            background-color: #3b82f6;
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            margin: 0 auto;
+            margin: 10px;
+            font-size: 16px;
         }
-        
-        .mic-button.active {
-            background-color: #60a5fa;
-            box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
-            transform: scale(1.1);
+        .button:hover {
+            background-color: #45a049;
         }
-        
-        .mic-button:hover {
-            background-color: #2563eb;
-        }
-        
-        .status {
+        #status, #debug {
             margin-top: 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+            color: #666;
+        }
+        #debug {
+            text-align: left;
+            font-family: monospace;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button id="micButton" class="mic-button" onclick="toggleCall()">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="white"/>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </button>
-        <div id="status" class="status">Ready</div>
+        <h1>AI Assistant</h1>
+        <button class="button" onclick="startAssistant()">Start Call</button>
+        <button class="button" onclick="endAssistant()">End Call</button>
+        <button class="button" onclick="toggleMute()">Toggle Mute</button>
+        <div id="status">Status: Ready</div>
+        <div id="debug">Debug info will appear here...</div>
     </div>
 
     <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
+
     <script>
         let vapi;
-        let isCallActive = false;
+        let isMuted = false;
+
+        function updateDebug(message) {
+            const debug = document.getElementById('debug');
+            debug.textContent += '\n' + new Date().toLocaleTimeString() + ': ' + message;
+        }
 
         window.onload = function() {
-            vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
-            
-            vapi.on('call-start', () => {
-                document.getElementById('status').textContent = 'Listening...';
-                document.getElementById('micButton').classList.add('active');
-                isCallActive = true;
-            });
+            try {
+                vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
+                updateDebug('Vapi initialized');
 
-            vapi.on('call-end', () => {
-                document.getElementById('status').textContent = 'Ready';
-                document.getElementById('micButton').classList.remove('active');
-                isCallActive = false;
-            });
+                vapi.on('call-start', () => {
+                    document.getElementById('status').textContent = 'Status: Call Started';
+                    updateDebug('Call started');
+                });
 
-            vapi.on('speech-start', () => {
-                document.getElementById('status').textContent = 'Assistant speaking...';
-            });
+                vapi.on('call-end', () => {
+                    document.getElementById('status').textContent = 'Status: Call Ended';
+                    updateDebug('Call ended');
+                });
 
-            vapi.on('speech-end', () => {
-                document.getElementById('status').textContent = 'Listening...';
-            });
+                vapi.on('speech-start', () => {
+                    document.getElementById('status').textContent = 'Status: Assistant Speaking';
+                    updateDebug('Speech started');
+                });
 
-            vapi.on('error', (error) => {
-                console.error('Error:', error);
-                document.getElementById('status').textContent = 'Error occurred';
-                document.getElementById('micButton').classList.remove('active');
-                isCallActive = false;
-            });
+                vapi.on('speech-end', () => {
+                    document.getElementById('status').textContent = 'Status: Assistant Finished Speaking';
+                    updateDebug('Speech ended');
+                });
+
+                vapi.on('error', (error) => {
+                    document.getElementById('status').textContent = 'Status: Error Occurred';
+                    updateDebug('Error: ' + JSON.stringify(error));
+                });
+
+                updateDebug('Event listeners set up');
+            } catch (error) {
+                updateDebug('Initialization error: ' + error.message);
+            }
         };
 
-        function toggleCall() {
-            if (!isCallActive) {
+        function startAssistant() {
+            try {
+                updateDebug('Attempting to start call...');
+                // Using your assistant ID directly
                 vapi.start('5439b123-43bd-4983-b794-c1b404273d72');
-            } else {
+            } catch (error) {
+                updateDebug('Start error: ' + error.message);
+            }
+        }
+
+        function endAssistant() {
+            try {
                 vapi.stop();
+                updateDebug('Call stopped');
+            } catch (error) {
+                updateDebug('Stop error: ' + error.message);
+            }
+        }
+
+        function toggleMute() {
+            try {
+                isMuted = !isMuted;
+                vapi.setMuted(isMuted);
+                document.getElementById('status').textContent = 
+                    `Status: ${isMuted ? 'Muted' : 'Unmuted'}`;
+                updateDebug(`Mute toggled: ${isMuted}`);
+            } catch (error) {
+                updateDebug('Mute toggle error: ' + error.message);
             }
         }
     </script>
