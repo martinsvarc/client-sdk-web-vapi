@@ -6,8 +6,10 @@
       "use": "@vercel/static"
     }
   ],
-  "env": {
-    "NEXT_PUBLIC_VAPI_PUBLIC_KEY": "@next_public_vapi_public_key",
-    "NEXT_PUBLIC_VAPI_ASSISTANT_ID": "@next_public_vapi_assistant_id"
-  }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
