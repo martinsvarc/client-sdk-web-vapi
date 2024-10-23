@@ -1,0 +1,8 @@
+{
+  "name": "client-sdk-web-vapi",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vapi-ai/web": "^2.1.6"
+  }
+}
