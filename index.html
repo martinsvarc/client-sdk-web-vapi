@@ -5,61 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chat</title>
     <style>
-        .chat-bubble {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #0056b3;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .chat-bubble:hover {
-            transform: scale(1.05);
-            background: #003d82;
-        }
-
-        .chat-bubble.active {
-            background: #dc3545;
-        }
-
-        .chat-bubble .icon {
-            width: 30px;
-            height: 30px;
-            fill: white;
-        }
-
-        .audio-waves {
-            display: none;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-        }
-
-        .audio-waves.active {
-            display: block;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(0,86,179, 0.4);
-            }
-            70% {
-                box-shadow: 0 0 0 20px rgba(0,86,179, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(0,86,179, 0);
-            }
-        }
+        /* ... keep the same styles ... */
     </style>
 </head>
 <body>
@@ -71,45 +17,59 @@
         </svg>
     </div>
 
-    <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
-    <script>
-        let vapi;
+    <!-- Change to module type and wait for load -->
+    <script type="module">
+        // Import Vapi from CDN
+        import Vapi from 'https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js';
+
+        let vapiInstance;
         let isCallActive = false;
 
-        // Initialize Vapi
-        window.onload = function() {
-            vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
-            
-            vapi.on('call-start', () => {
-                showActive(true);
-            });
-
-            vapi.on('call-end', () => {
-                showActive(false);
-            });
-
-            vapi.on('speech-start', () => {
-                showSpeaking(true);
-            });
-
-            vapi.on('speech-end', () => {
-                showSpeaking(false);
-            });
-
-            vapi.on('error', (error) => {
-                console.error('Error:', error);
-                showActive(false);
-            });
-        };
-
-        function toggleCall() {
+        // Make toggleCall global
+        window.toggleCall = function() {
             if (!isCallActive) {
-                vapi.start('5439b123-43bd-4983-b794-c1b404273d72');
+                vapiInstance.start('5439b123-43bd-4983-b794-c1b404273d72');
             } else {
-                vapi.stop();
+                vapiInstance.stop();
             }
             isCallActive = !isCallActive;
         }
+
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                vapiInstance = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
+                console.log('Vapi initialized successfully');
+                
+                vapiInstance.on('call-start', () => {
+                    showActive(true);
+                    console.log('Call started');
+                });
+
+                vapiInstance.on('call-end', () => {
+                    showActive(false);
+                    console.log('Call ended');
+                });
+
+                vapiInstance.on('speech-start', () => {
+                    showSpeaking(true);
+                    console.log('Speaking started');
+                });
+
+                vapiInstance.on('speech-end', () => {
+                    showSpeaking(false);
+                    console.log('Speaking ended');
+                });
+
+                vapiInstance.on('error', (error) => {
+                    console.error('Vapi error:', error);
+                    showActive(false);
+                });
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        });
 
         function showActive(active) {
             const bubble = document.getElementById('chat-bubble');
