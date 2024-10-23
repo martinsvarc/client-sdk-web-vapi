@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vapi AI Assistant</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Assistant</h1>
+        <button class="button" onclick="startAssistant()">Start Call</button>
+        <button class="button" onclick="endAssistant()">End Call</button>
+        <button class="button" onclick="toggleMute()">Toggle Mute</button>
+        <div id="status">Status: Ready</div>
+    </div>
+
+    <!-- Import Vapi directly from CDN -->
+    <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
+
+    <script>
+        let vapi;
+        let isMuted = false;
+
+        // Initialize when page loads
+        window.onload = function() {
+            // Replace 'your-public-key' with your actual Vapi public key
+            vapi = new Vapi('your-public-key');
+
+            // Set up event listeners
+            vapi.on('call-start', () => {
+                document.getElementById('status').textContent = 'Status: Call Started';
+                console.log('Call started');
+            });
+
+            vapi.on('call-end', () => {
+                document.getElementById('status').textContent = 'Status: Call Ended';
+                console.log('Call ended');
+            });
+
+            vapi.on('speech-start', () => {
+                document.getElementById('status').textContent = 'Status: Assistant Speaking';
+                console.log('Speech started');
+            });
+
+            vapi.on('speech-end', () => {
+                document.getElementById('status').textContent = 'Status: Assistant Finished Speaking';
+                console.log('Speech ended');
+            });
+
+            vapi.on('error', (error) => {
+                document.getElementById('status').textContent = 'Status: Error Occurred';
+                console.error('Error:', error);
+            });
+        };
+
+        // Function to start the assistant
+        function startAssistant() {
+            vapi.start({
+                model: {
+                    provider: "openai",
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are a helpful assistant."
+                        }
+                    ]
+                },
+                voice: {
+                    provider: "11labs",
+                    voiceId: "burt"
+                }
+            });
+        }
+
+        // Function to end the assistant
+        function endAssistant() {
+            vapi.stop();
+        }
+
+        // Function to toggle mute
+        function toggleMute() {
+            isMuted = !isMuted;
+            vapi.setMuted(isMuted);
+            document.getElementById('status').textContent = 
+                `Status: ${isMuted ? 'Muted' : 'Unmuted'}`;
+        }
+    </script>
+</body>
+</html>
