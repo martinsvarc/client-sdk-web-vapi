@@ -3,60 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vapi Client SDK</title>
-    <script src="https://unpkg.com/@vapi-ai/web@2.1.6/dist/vapi.js"></script>
+    <title>Vapi Client</title>
 </head>
 <body>
-    <!-- This div will be your embed target in Webflow -->
-    <div id="vapi-widget"></div>
-    
-    <script>
-        const vapiWidget = document.getElementById('vapi-widget');
-        const vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
+    <div id="app"></div>
+    <script type="module">
+        import Vapi from '@vapi-ai/web';
         
-        // You can later use Vercel env variables here
-        const assistantId = '5439b123-43bd-4983-b794-c1b404273d72';
+        // Initialize Vapi with your public key
+        const vapi = new Vapi('bb01b4a0-3597-4ef3-a3c7-f777014ca78f');
 
-        // Create widget UI
-        const button = document.createElement('button');
-        button.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #0066ff;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 9999;
-        `;
-
-        let isCallActive = false;
-
+        // Event listeners per documentation
         vapi.on('call-start', () => {
-            console.log('Call started');
-            button.style.background = '#ff0000';
+            console.log('Call has started.');
         });
 
         vapi.on('call-end', () => {
-            console.log('Call ended');
-            button.style.background = '#0066ff';
-            isCallActive = false;
+            console.log('Call has ended.');
         });
 
-        button.onclick = function() {
-            if (!isCallActive) {
-                vapi.start(assistantId);
-                isCallActive = true;
-            } else {
-                vapi.stop();
-                isCallActive = false;
-            }
-        };
+        vapi.on('speech-start', () => {
+            console.log('Assistant speech has started.');
+        });
 
-        vapiWidget.appendChild(button);
+        vapi.on('speech-end', () => {
+            console.log('Assistant speech has ended.');
+        });
+
+        vapi.on('error', (e) => {
+            console.error(e);
+        });
+
+        // Create and add button
+        const button = document.createElement('button');
+        button.innerText = 'Talk';
+        button.onclick = () => vapi.start('5439b123-43bd-4983-b794-c1b404273d72');
+
+        document.getElementById('app').appendChild(button);
     </script>
 </body>
 </html>
